@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "IoT Smart Home",
+    "slug": "iot-smart-home",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "platforms": ["web", "android", "ios"],
+    "web": {
+      "bundler": "metro"
+    },
+    "scheme": "iot-smart-home"
+  }
+}
