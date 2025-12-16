@@ -4,11 +4,7 @@
  */
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
-import {
-  useAudioRecorder,
-  AudioModule,
-  RecordingPresets,
-} from "expo-audio";
+import { useAudioRecorder, AudioModule, RecordingPresets } from "expo-audio";
 import { useMutation } from "@tanstack/react-query";
 import { apiClient } from "../services/api";
 
@@ -39,7 +35,7 @@ export default function VoiceCommandButton() {
       // Request permissions
       const { granted } = await AudioModule.requestRecordingPermissionsAsync();
       console.log("Permission granted:", granted);
-      
+
       if (!granted) {
         Alert.alert("Permission Denied", "Please grant microphone access");
         return;
@@ -47,8 +43,11 @@ export default function VoiceCommandButton() {
 
       // Start recording
       console.log("Starting recording...");
-      console.log("Recorder state before prepareToRecord:", audioRecorder.isRecording);
-      
+      console.log(
+        "Recorder state before prepareToRecord:",
+        audioRecorder.isRecording
+      );
+
       // Prepare and start recording
       try {
         await audioRecorder.prepareToRecordAsync();
@@ -56,15 +55,15 @@ export default function VoiceCommandButton() {
       } catch (prepErr) {
         console.log("prepareToRecordAsync not available or failed:", prepErr);
       }
-      
+
       await audioRecorder.record();
-      
+
       // Wait a moment for state to update
       await new Promise((resolve) => setTimeout(resolve, 100));
-      
+
       // Check if recording actually started
       console.log("After record() - isRecording:", audioRecorder.isRecording);
-      
+
       if (audioRecorder.isRecording) {
         setIsRecording(true);
         console.log("Recording started successfully");

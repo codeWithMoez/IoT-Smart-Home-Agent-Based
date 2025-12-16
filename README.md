@@ -77,13 +77,15 @@ That's it! 🎉 The backend will start at `http://localhost:8000` and the mobile
 ### Voice Command Examples
 
 Try saying:
-- *"Turn on the night light"*
-- *"Open the garage door"*
-- *"Turn on the water pump"*
-- *"Close the garage and turn off the LED"*
-- *"Enable auto mode"*
+
+- _"Turn on the night light"_
+- _"Open the garage door"_
+- _"Turn on the water pump"_
+- _"Close the garage and turn off the LED"_
+- _"Enable auto mode"_
 
 The AI understands natural language and will:
+
 - ✅ Execute your commands
 - ❓ Ask clarifying questions if ambiguous
 - ⚠️ Warn about safety issues
@@ -92,22 +94,26 @@ The AI understands natural language and will:
 ### App Features
 
 #### 📊 Dashboard
+
 - Real-time temperature & humidity
 - Device status indicators
 - Connection status
 - Emergency alerts
 
 #### 🎛️ Auto Mode Toggle
+
 - **ON** - System controls devices automatically based on sensors
 - **OFF** - You have full manual control
 
 #### 🕹️ Device Controls
+
 - **Night LED** - Turn on/off
 - **Garage Door** - Open/close
 - **Water Pump** - Turn on/off
 - **Clothes Servo** - Open/close (rain protection)
 
 #### 🎤 Voice Commands
+
 1. Press microphone button
 2. Speak your command
 3. Wait for transcription & processing
@@ -144,6 +150,7 @@ The AI understands natural language and will:
 ### Technology Stack
 
 **Backend:**
+
 - Python 3.13+ with FastAPI
 - OpenAI GPT-4o-mini (AI agent)
 - OpenAI Whisper (speech-to-text)
@@ -152,6 +159,7 @@ The AI understands natural language and will:
 - Pydantic (data validation)
 
 **Mobile:**
+
 - Expo SDK 54 / React Native
 - TypeScript
 - Zustand (state management)
@@ -160,6 +168,7 @@ The AI understands natural language and will:
 - WebSocket (real-time updates)
 
 **Hardware:**
+
 - Arduino Uno
 - DHT22 (temperature/humidity)
 - LDR (light sensor)
@@ -204,6 +213,7 @@ IoT-Smart-Home-Agent-Based/
 ### Universal Scripts
 
 **Windows:**
+
 ```bash
 start.bat setup    # Install all dependencies
 start.bat run      # Start backend + mobile
@@ -211,6 +221,7 @@ start.bat stop     # Stop all services
 ```
 
 **Linux/Mac/Git Bash:**
+
 ```bash
 bash start.sh setup    # Install all dependencies
 bash start.sh run      # Start backend + mobile
@@ -220,6 +231,7 @@ bash start.sh stop     # Stop all services
 ### Manual Commands
 
 **Backend:**
+
 ```bash
 # Activate virtual environment
 source venv/bin/activate  # Linux/Mac
@@ -233,6 +245,7 @@ tail -f backend.log
 ```
 
 **Mobile:**
+
 ```bash
 cd mobile
 npm start              # Start Expo
@@ -276,54 +289,70 @@ TELEMETRY_BROADCAST_INTERVAL=1.0
 ### Modes
 
 **AUTO Mode (Default)**
+
 - Tries to connect to Arduino via USB
 - Falls back to simulation if Arduino not found
 - Best for development and testing
 
 **ARDUINO Mode**
+
 - Requires real Arduino hardware
 - Fails if Arduino not detected
 - Best for production deployment
 
 **SIMULATION Mode**
+
 - Forces simulation even if Arduino available
 - Generates realistic sensor data
 - Best for testing without hardware
 
 ---
 
-## 🔌 Arduino Setup (Optional)
+## 🔌 Arduino Hardware Setup
 
-If you want to use real hardware:
+**Want to connect real Arduino hardware?**
 
-### Components Needed
-- Arduino Uno
-- DHT22 sensor (temperature/humidity)
-- LDR (light sensor)
-- PIR sensor (motion)
-- Ultrasonic sensor (distance/rain)
-- 2x Servo motors
-- Relay module
-- Water pump
-- Buzzer
-- LEDs
+👉 **See the complete guide:** [ARDUINO_SETUP.md](ARDUINO_SETUP.md)
 
-### Upload Firmware
+The guide covers:
 
-1. Open `arduino_code.ino` in Arduino IDE
-2. Select your board: **Tools → Board → Arduino Uno**
-3. Select port: **Tools → Port → COMx (Windows)** or **/dev/ttyUSBx (Linux)**
-4. Click **Upload**
+- 🛠️ Required components (sensors, actuators, wiring)
+- 📝 Step-by-step firmware upload instructions
+- 🔌 Pin configuration and wiring diagrams
+- ⚙️ Backend configuration for hardware mode
+- 🔄 When and how to reset Arduino
+- 🐛 Comprehensive troubleshooting
+- 💡 Tips & best practices
 
-### Connect to Backend
+### Quick Start with Arduino
 
-Update `.env`:
-```env
-IOT_MODE=ARDUINO
-SERIAL_PORT=COM3  # Windows
-# SERIAL_PORT=/dev/ttyUSB0  # Linux
-BAUD_RATE=9600
-```
+1. **Upload the firmware:**
+
+   - Open `arduino_code.ino` in Arduino IDE
+   - Select your board and port
+   - Click Upload
+
+2. **Update `.env` file:**
+
+   ```env
+   IOT_MODE=ARDUINO
+   SERIAL_PORT=COM3  # Your Arduino port
+   ```
+
+3. **Restart the backend:**
+   ```bash
+   start.bat run  # or bash start.sh run
+   ```
+
+For detailed wiring, troubleshooting, and component lists, see [ARDUINO_SETUP.md](ARDUINO_SETUP.md).
+
+### Without Arduino (Simulation)
+
+If you don't have Arduino hardware:
+
+- **Nothing needed!** The system works perfectly in simulation mode
+- Generates realistic sensor data automatically
+- All features work exactly the same
 
 ---
 
@@ -332,11 +361,13 @@ BAUD_RATE=9600
 ### Backend Won't Start
 
 **Check Python version:**
+
 ```bash
 python --version  # Should be 3.11+
 ```
 
 **Check virtual environment:**
+
 ```bash
 source venv/bin/activate  # Unix
 venv\Scripts\activate     # Windows
@@ -344,6 +375,7 @@ pip list  # Should show installed packages
 ```
 
 **Check backend logs:**
+
 ```bash
 tail -50 backend.log
 ```
@@ -351,12 +383,14 @@ tail -50 backend.log
 ### Mobile App Won't Load
 
 **Clear Metro bundler cache:**
+
 ```bash
 cd mobile
 npm start --clear
 ```
 
 **Reinstall dependencies:**
+
 ```bash
 cd mobile
 rm -rf node_modules package-lock.json
@@ -366,18 +400,21 @@ npm install --legacy-peer-deps
 ### Voice Commands Not Working
 
 **Check OpenAI API key:**
+
 ```bash
 # In .env file
 OPENAI_API_KEY=sk-proj-...  # Must start with sk-
 ```
 
 **Test API key:**
+
 ```bash
 curl https://api.openai.com/v1/models \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 **Check backend logs:**
+
 ```bash
 grep -i "openai\|whisper\|transcription" backend.log
 ```
@@ -385,31 +422,36 @@ grep -i "openai\|whisper\|transcription" backend.log
 ### Buttons Show 400 Error
 
 **Solution:** Toggle Auto Mode OFF first
+
 - Auto mode blocks manual control
 - Switch must be OFF to use buttons
 
 ### No Audio Recorded
 
 **Check permissions:**
+
 - Android: Settings → Apps → Expo Go → Permissions → Microphone
 - iOS: Settings → Expo Go → Microphone
 
 **Check console logs:**
+
 - Look for "Recording started" message
 - Check for permission errors
 
 ### WebSocket Connection Failed
 
 **Update mobile API config:**
+
 ```typescript
 // mobile/src/services/api.ts
-baseURL: "http://YOUR_IP_ADDRESS:8000"
+baseURL: "http://YOUR_IP_ADDRESS:8000";
 
 // mobile/src/services/websocket.ts
-defaultUrl: "ws://YOUR_IP_ADDRESS:8000/ws/telemetry"
+defaultUrl: "ws://YOUR_IP_ADDRESS:8000/ws/telemetry";
 ```
 
 **Find your IP:**
+
 ```bash
 # Windows
 ipconfig
@@ -431,25 +473,31 @@ Once the backend is running, visit:
 ### Key Endpoints
 
 **POST /api/v1/transcribe**
+
 - Upload audio file
 - Returns transcribed text (Whisper API)
 
 **POST /api/v1/voice-command**
+
 - Send transcribed text
 - AI processes and executes commands
 - Returns status and actions taken
 
 **POST /api/v1/manual-control**
+
 - Direct device control (bypasses AI)
 - Requires auto mode OFF
 
 **POST /api/v1/auto-mode**
+
 - Toggle automatic device control
 
 **GET /api/v1/telemetry**
+
 - Get current sensor readings
 
 **WebSocket /ws/telemetry**
+
 - Real-time sensor data stream
 
 ---
@@ -525,6 +573,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Moez**
+
 - GitHub: [@codeWithMoez](https://github.com/codeWithMoez)
 
 ---
