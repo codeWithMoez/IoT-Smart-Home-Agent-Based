@@ -3,6 +3,7 @@
  * Type-safe HTTP client for all backend endpoints.
  */
 import axios, { AxiosInstance } from "axios";
+import { config } from "../config";
 
 export interface TelemetryData {
   timestamp: string;
@@ -47,10 +48,10 @@ export interface HealthResponse {
 export class ApiClient {
   private client: AxiosInstance;
 
-  constructor(baseURL: string = "http://192.168.100.16:8000") {
+  constructor(baseURL: string = config.apiUrl) {
     this.client = axios.create({
       baseURL: `${baseURL}/api/v1`,
-      timeout: 10000,
+      timeout: config.apiTimeout,
       headers: {
         "Content-Type": "application/json",
       },

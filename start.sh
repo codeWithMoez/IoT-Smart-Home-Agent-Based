@@ -14,6 +14,21 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# PID tracking
+BACKEND_PID=""
+MOBILE_PID=""
+
+# Cleanup function for Ctrl+C
+cleanup() {
+    echo ""
+    log_info "Caught interrupt signal, cleaning up..."
+    stop
+    exit 0
+}
+
+# Set trap for Ctrl+C
+trap cleanup SIGINT SIGTERM
+
 # Logging functions
 log_info() {
     echo -e "${BLUE}ℹ${NC} $1"
@@ -54,10 +69,14 @@ setup() {
         exit 1
     fi
     
-    # Use python3 if available, otherwise python
-    PYTHON_CMD="python3"
-    if ! command -v python3 &> /dev/null; then
+    # Use python3 if available, otherwise python (prefer python on Windows)
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
         PYTHON_CMD="python"
+    else
+        PYTHON_CMD="python3"
+        if ! command -v python3 &> /dev/null; then
+            PYTHON_CMD="python"
+        fi
     fi
     
     log_success "Python found: $($PYTHON_CMD --version)"
@@ -156,43 +175,61 @@ run() {
     sleep 2
     
     # Activate virtual environment
+    log_info "Activating virtual environment..."
     if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
         source venv/Scripts/activate
+        PYTHON_CMD="python"
     else
         source venv/bin/activate
+        PYTHON_CMD="python"
     fi
     
     print_header "🔧 Starting Backend Server"
     
     # Start backend in background
     log_info "Starting backend (http://localhost:8000)..."
-    nohup $PYTHON_CMD -m backend.main > backend.log 2>&1 &
-    BACKEND_PID=$!
+    
+    # Different approach for Windows vs Unix
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        # Windows (Git Bash)
+        $PYTHON_CMD -m backend.main > backend.log 2>&1 &
+        BACKEND_PID=$!
+    else
+        # Linux/Mac
+        nohup $PYTHON_CMD -m backend.main > backend.log 2>&1 &
+        BACKEND_PID=$!
+    fi
+    
     log_success "Backend started (PID: $BACKEND_PID)"
     
     # Wait for backend to start
     log_info "Waiting for backend to initialize..."
-    sleep 5
-    
-    # Check if backend is running
-    if curl -s http://localhost:8000/api/v1/health > /dev/null 2>&1; then
-        log_success "Backend is responding!"
-        log_info "API: http://localhost:8000"
-        log_info "Docs: http://localhost:8000/docs"
-    else
-        log_error "Backend failed to start. Check backend.log for errors."
-        exit 1
-    fi
+    for i in {1..15}; do
+        if curl -s http://localhost:8000/api/v1/health > /dev/null 2>&1; then
+            log_success "Backend is responding!"
+            log_info "API: http://localhost:8000"
+            log_info "Docs: http://localhost:8000/docs"
+            break
+        fi
+        sleep 1
+        if [ $i -eq 15 ]; then
+            log_error "Backend failed to start. Check backend.log for errors."
+            cat backend.log
+            exit 1
+        fi
+    done
     
     print_header "📱 Starting Mobile App"
     
     log_info "Starting Expo development server..."
     log_info "Scan the QR code with Expo Go app on your phone"
     log_info "Or press 'w' to open in web browser"
+    log_info "Press Ctrl+C to stop all services"
     echo ""
     
     cd mobile
     npm start
+    cd ..
 }
 
 ################################################################################
@@ -205,8 +242,10 @@ stop() {
     log_info "Stopping backend..."
     if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
         taskkill //F //IM python.exe 2>/dev/null || true
+        taskkill //F //IM pythonw.exe 2>/dev/null || true
     else
         pkill -f "backend.main" 2>/dev/null || true
+        [ -n "$BACKEND_PID" ] && kill $BACKEND_PID 2>/dev/null || true
     fi
     
     log_info "Stopping mobile..."
@@ -214,6 +253,8 @@ stop() {
         taskkill //F //IM node.exe 2>/dev/null || true
     else
         pkill -f "expo start" 2>/dev/null || true
+        pkill -f "react-native" 2>/dev/null || true
+        [ -n "$MOBILE_PID" ] && kill $MOBILE_PID 2>/dev/null || true
     fi
     
     log_success "All services stopped"

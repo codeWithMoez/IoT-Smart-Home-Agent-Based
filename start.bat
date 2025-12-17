@@ -5,6 +5,12 @@ REM ============================================================================
 
 setlocal enabledelayedexpansion
 
+REM Setup Ctrl+C handler
+if not "%1"=="run" goto skip_handler
+set CLEANUP_ON_EXIT=1
+if not defined PROMPT_BACKUP set PROMPT_BACKUP=%PROMPT%
+:skip_handler
+
 REM Check command
 if "%1"=="" goto usage
 if "%1"=="setup" goto setup
@@ -122,18 +128,27 @@ echo.
 
 echo [*] Starting backend (http://localhost:8000)...
 call venv\Scripts\activate.bat
-start /B python -m backend.main > backend.log 2>&1
+
+REM Start backend with proper output redirection
+start "IoT Backend" /B cmd /c "python -m backend.main > backend.log 2>&1"
 
 echo [*] Waiting for backend to initialize...
-timeout /t 5 /nobreak >nul
 
-REM Check if backend is running
+REM Wait up to 15 seconds for backend
+set /a counter=0
+:wait_backend
+timeout /t 1 /nobreak >nul
 curl -s http://localhost:8000/api/v1/health >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] Backend failed to start. Check backend.log
-    exit /b 1
-)
+if %errorlevel% equ 0 goto backend_ready
+set /a counter+=1
+if %counter% lss 15 goto wait_backend
 
+REM Backend failed
+echo [ERROR] Backend failed to start. Check backend.log
+type backend.log
+exit /b 1
+
+:backend_ready
 echo [OK] Backend is responding!
 echo [*] API: http://localhost:8000
 echo [*] Docs: http://localhost:8000/docs
@@ -147,16 +162,25 @@ echo.
 echo [*] Starting Expo development server...
 echo [*] Scan the QR code with Expo Go app on your phone
 echo [*] Or press 'w' to open in web browser
+echo [*] Press Ctrl+C to stop all services
 echo.
 
 cd mobile
 call npm start
+
+REM Cleanup when npm exits
+cd ..
+call :stop_services
 goto end
 
 REM ============================================================================
 REM STOP
 REM ============================================================================
 :stop
+call :stop_services
+goto end
+
+:stop_services
 echo.
 echo ============================================
 echo  Stopping Services
@@ -165,12 +189,13 @@ echo.
 
 echo [*] Stopping backend...
 taskkill /F /IM python.exe >nul 2>&1
+taskkill /F /IM pythonw.exe >nul 2>&1
 
 echo [*] Stopping mobile...
 taskkill /F /IM node.exe >nul 2>&1
 
 echo [OK] All services stopped
-goto end
+exit /b 0
 
 REM ============================================================================
 REM USAGE

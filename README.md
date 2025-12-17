@@ -45,7 +45,23 @@ OPENAI_MODEL=gpt-4o-mini
 
 Get your API key from: https://platform.openai.com/api-keys
 
-### Step 3: Run the System
+### Step 3: Configure Mobile App (Optional - For Physical Device)
+
+**If testing on a physical phone** (not browser/emulator), run the configuration helper:
+
+```bash
+# Windows
+configure-mobile.bat
+
+# Linux/Mac/Git Bash
+bash configure-mobile.sh
+```
+
+This automatically configures `mobile/.env` with your computer's IP address.
+
+> **Skip this** if using a web browser or emulator on the same computer.
+
+### Step 4: Run the System
 
 ```bash
 # Windows
@@ -57,12 +73,19 @@ bash start.sh run
 
 That's it! 🎉 The backend will start at `http://localhost:8000` and the mobile app will open with a QR code.
 
-### Step 4: Connect Your Phone
+### Step 5: Connect Your Phone
 
 1. Install **Expo Go** app on your phone ([iOS](https://apps.apple.com/app/expo-go/id982107779) | [Android](https://play.google.com/store/apps/details?id=host.exp.exponent))
-2. Scan the QR code shown in the terminal
-3. Wait for the app to load
-4. Start controlling your smart home! 🎤
+
+2. **Ensure both devices are on the same WiFi network**
+
+3. Scan the QR code shown in the terminal
+
+4. Wait for the app to load (first load takes ~30 seconds)
+
+5. Start controlling your smart home! 🎤
+
+> **Manual Configuration**: If you prefer, edit `mobile/.env` and set `EXPO_PUBLIC_API_URL=http://YOUR_IP:8000`
 
 ---
 
@@ -538,7 +561,133 @@ tail -f backend.log | grep "HTTP"
 
 ---
 
-## 💡 Tips & Best Practices
+## � Troubleshooting
+
+### Mobile App Can't Connect to Backend
+
+**Problem**: WebSocket errors or "Network Error" when using app on phone
+
+**Solutions**:
+
+1. **Check Same WiFi Network**: Ensure your phone and computer are on the same WiFi network
+
+2. **Update mobile/.env with your computer's IP**:
+
+   ```bash
+   # Find your IP
+   ipconfig          # Windows
+   ifconfig          # Mac/Linux
+
+   # Edit mobile/.env
+   EXPO_PUBLIC_API_URL=http://YOUR_IP:8000
+   ```
+
+3. **Check Firewall**: Allow port 8000 in your firewall
+
+   ```bash
+   # Windows Firewall (Run as Administrator)
+   netsh advfirewall firewall add rule name="IoT Backend" dir=in action=allow protocol=TCP localport=8000
+   ```
+
+4. **Restart Expo**: After changing `.env`, restart the mobile app
+
+   ```bash
+   # Stop current process (Ctrl+C)
+   ./start.sh run
+   ```
+
+5. **Verify Backend is Accessible**:
+   ```bash
+   # On your phone's browser, visit:
+   http://YOUR_IP:8000/docs
+   ```
+
+### Backend Fails to Start
+
+**Problem**: "Backend failed to start" error
+
+**Solutions**:
+
+1. **Check Python version**: Must be Python 3.11+
+
+   ```bash
+   python --version
+   ```
+
+2. **Activate virtual environment**:
+
+   ```bash
+   source venv/Scripts/activate    # Windows Git Bash
+   source venv/bin/activate        # Mac/Linux
+   ```
+
+3. **Check backend.log**:
+
+   ```bash
+   cat backend.log
+   ```
+
+4. **Reinstall dependencies**:
+   ```bash
+   ./start.sh setup
+   ```
+
+### Voice Commands Not Working
+
+**Problem**: "Transcription failed" or no response
+
+**Solutions**:
+
+1. **Check OpenAI API Key** in `.env`:
+
+   ```bash
+   OPENAI_API_KEY=sk-proj-...your-key-here...
+   ```
+
+2. **Check API Key Balance**: Visit [OpenAI Platform](https://platform.openai.com/usage)
+
+3. **Test API manually**:
+
+   ```bash
+   curl http://localhost:8000/api/v1/health
+   ```
+
+4. **Check logs**:
+   ```bash
+   tail -f backend.log | grep -i "error"
+   ```
+
+### Arduino Not Detected
+
+**Problem**: "Serial port not found" error
+
+**Solutions**:
+
+1. **Check Arduino is connected**: LED should be on
+
+2. **Find correct port**:
+
+   ```bash
+   # Windows
+   mode
+
+   # Mac/Linux
+   ls /dev/tty*
+   ```
+
+3. **Update .env**:
+
+   ```bash
+   SERIAL_PORT=COM3          # Windows
+   SERIAL_PORT=/dev/ttyUSB0  # Linux
+   SERIAL_PORT=/dev/cu.usbmodem14101  # Mac
+   ```
+
+4. **Check drivers**: Install Arduino drivers from [Arduino.cc](https://www.arduino.cc/en/software)
+
+---
+
+## �💡 Tips & Best Practices
 
 ### For Development
 

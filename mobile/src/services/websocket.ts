@@ -2,6 +2,7 @@
  * WebSocket Service - Real-time Telemetry Streaming
  */
 import { TelemetryData } from "./api";
+import { config } from "../config";
 
 type TelemetryCallback = (data: TelemetryData) => void;
 type ErrorCallback = (error: Event) => void;
@@ -10,12 +11,12 @@ export class WebSocketService {
   private ws: WebSocket | null = null;
   private url: string;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+  private maxReconnectAttempts = config.wsMaxReconnectAttempts;
+  private reconnectDelay = config.wsReconnectDelay;
   private telemetryCallbacks: Set<TelemetryCallback> = new Set();
   private errorCallbacks: Set<ErrorCallback> = new Set();
 
-  constructor(url: string = "ws://192.168.100.16:8000/ws/telemetry") {
+  constructor(url: string = config.wsUrl) {
     this.url = url;
   }
 
