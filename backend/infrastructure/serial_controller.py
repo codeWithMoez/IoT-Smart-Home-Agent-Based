@@ -234,12 +234,15 @@ class SerialHardwareController:
                     
                     if line:
                         decoded = line.decode('ascii', errors='ignore').strip()
+                        logger.info("arduino_raw_data", line=decoded)  # DEBUG: See raw Arduino output
                         telemetry = self._parse_telemetry(decoded)
                         
                         if telemetry:
                             async with self._telemetry_lock:
                                 self._latest_telemetry = telemetry
-                            logger.debug("telemetry_updated", line=decoded)
+                            logger.info("telemetry_parsed_successfully", line=decoded)
+                        else:
+                            logger.warning("telemetry_parse_failed", line=decoded)
                 
                 await asyncio.sleep(0.1)  # Small delay to prevent tight loop
                 

@@ -123,8 +123,13 @@ setup() {
     # Create virtual environment if it doesn't exist
     if [ ! -d "venv" ]; then
         log_info "Creating Python virtual environment..."
-        $PYTHON_CMD -m venv venv
+        if ! $PYTHON_CMD -m venv venv; then
+            log_error "Failed to create virtual environment"
+            exit 1
+        fi
         log_success "Virtual environment created"
+    else
+        log_info "Virtual environment already exists"
     fi
     
     # Activate virtual environment
@@ -135,17 +140,50 @@ setup() {
         source venv/bin/activate
     fi
     
+    if [ $? -ne 0 ]; then
+        log_error "Failed to activate virtual environment"
+        exit 1
+    fi
+    
     # Install Python dependencies
-    log_info "Installing Python packages..."
-    pip install --upgrade pip > /dev/null 2>&1
-    pip install -r requirements.txt > /dev/null 2>&1
+    log_info "Upgrading pip..."
+    python -m pip install --upgrade pip
+    
+    if [ $? -ne 0 ]; then
+        log_error "Failed to upgrade pip"
+        exit 1
+    fi
+    
+    log_info "Installing Python packages from requirements.txt..."
+    echo "This may take a few minutes on first install..."
+    
+    if ! pip install -r requirements.txt; then
+        log_error "Failed to install Python dependencies"
+        log_error "Check your internet connection and try again"
+        exit 1
+    fi
+    
     log_success "Backend dependencies installed"
     
     print_header "📱 Installing Mobile Dependencies"
     
+    if [ ! -f "mobile/package.json" ]; then
+        log_error "mobile/package.json not found!"
+        exit 1
+    fi
+    
     cd mobile
+    
     log_info "Installing npm packages..."
-    npm install --legacy-peer-deps > /dev/null 2>&1
+    echo "This may take a few minutes on first install..."
+    
+    if ! npm install --legacy-peer-deps; then
+        log_error "Failed to install npm dependencies"
+        log_error "Check your internet connection and try again"
+        cd ..
+        exit 1
+    fi
+    
     log_success "Mobile dependencies installed"
     cd ..
     

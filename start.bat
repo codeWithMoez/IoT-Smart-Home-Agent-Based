@@ -78,14 +78,40 @@ REM Create virtual environment if it doesn't exist
 if not exist "venv" (
     echo [*] Creating Python virtual environment...
     python -m venv venv
+    if errorlevel 1 (
+        echo [ERROR] Failed to create virtual environment
+        exit /b 1
+    )
     echo [OK] Virtual environment created
+) else (
+    echo [*] Virtual environment already exists
 )
 
-REM Activate virtual environment and install dependencies
-echo [*] Installing Python packages...
+REM Activate virtual environment
+echo [*] Activating virtual environment...
 call venv\Scripts\activate.bat
-python -m pip install --upgrade pip >nul 2>&1
-pip install -r requirements.txt >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Failed to activate virtual environment
+    exit /b 1
+)
+
+REM Upgrade pip
+echo [*] Upgrading pip...
+python -m pip install --upgrade pip
+if errorlevel 1 (
+    echo [ERROR] Failed to upgrade pip
+    exit /b 1
+)
+
+REM Install Python dependencies
+echo [*] Installing Python packages from requirements.txt...
+echo This may take a few minutes on first install...
+pip install -r requirements.txt
+if errorlevel 1 (
+    echo [ERROR] Failed to install Python dependencies
+    echo Check your internet connection and try again
+    exit /b 1
+)
 echo [OK] Backend dependencies installed
 
 echo.
@@ -94,9 +120,21 @@ echo  Installing Mobile Dependencies
 echo ============================================
 echo.
 
+if not exist "mobile\package.json" (
+    echo [ERROR] mobile\package.json not found!
+    exit /b 1
+)
+
 cd mobile
 echo [*] Installing npm packages...
-call npm install --legacy-peer-deps >nul 2>&1
+echo This may take a few minutes on first install...
+call npm install --legacy-peer-deps
+if errorlevel 1 (
+    echo [ERROR] Failed to install npm dependencies
+    echo Check your internet connection and try again
+    cd ..
+    exit /b 1
+)
 echo [OK] Mobile dependencies installed
 cd ..
 
